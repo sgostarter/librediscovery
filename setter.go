@@ -1,4 +1,4 @@
-package rediscovery
+package librediscovery
 
 import (
 	"context"
