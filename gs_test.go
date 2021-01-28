@@ -2,11 +2,12 @@ package librediscovery
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/jiuzhou-zhao/go-fundamental/clienttoolset"
 	"github.com/jiuzhou-zhao/go-fundamental/discovery"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,38 +21,88 @@ func TestGetterSetter(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	setter, err := NewSetter(ctx, nil, redisClient, "", time.Second, []*ServiceInfo4Discovery{
+	setter, err := NewSetter(ctx, nil, redisClient, "", time.Second)
+	assert.Nil(t, err)
+	err = setter.Start([]*discovery.ServiceInfo{
 		{
-			Name: "name1",
-			Path: "/aa/bb",
-			GRpcClientConfig: &clienttoolset.GRpcClientConfig{
-				Address: "127.0.0.1:1000",
+			Host:        "127.0.0.1",
+			Port:        1000,
+			ServiceName: discovery.BuildServerName("grpc", "server1", "1"),
+			Meta: map[string]string{
+				"a": "b",
 			},
 		},
 		{
-			Name: "name2",
-			Path: "/aa/bb2",
-			GRpcClientConfig: &clienttoolset.GRpcClientConfig{
-				Address: "127.0.0.2:1000",
+			Host:        "127.0.0.1",
+			Port:        1001,
+			ServiceName: discovery.BuildServerName("grpc", "server1", "2"),
+			Meta: map[string]string{
+				"d": "c",
+			},
+		},
+		{
+			Host:        "127.0.0.1",
+			Port:        1002,
+			ServiceName: discovery.BuildServerName("http", "server1", "2"),
+			Meta: map[string]string{
+				"d": "c",
+			},
+		},
+		{
+			Host:        "127.0.0.1",
+			Port:        1002,
+			ServiceName: discovery.BuildServerName("http", "server2", "2"),
+			Meta: map[string]string{
+				"d": "c",
+			},
+		},
+		{
+			Host:        "127.0.0.1",
+			Port:        10032,
+			ServiceName: "原始hahahoho",
+			Meta: map[string]string{
+				"d": "c",
 			},
 		},
 	})
-	assert.Nil(t, err)
-	err = setter.Start()
 	assert.Nil(t, err)
 
-	getter, err := NewGetter(ctx, nil, redisClient, "", 5*time.Second, 2*time.Second, func(services map[string][]*discovery.ServiceInfo) {
-		t.Logf("begin ...\n")
-		for k, infos := range services {
-			t.Logf("key=%v\n", k)
-			for _, info := range infos {
-				t.Logf("  %v, %v\n", info.Name, info.GRpcAddresses.Address)
-			}
+	fnSerivicesDump := func(id string, services []*discovery.ServiceInfo) {
+		ss := strings.Builder{}
+		ss.WriteString(fmt.Sprintf("<<<<<<< %v =====\n", id))
+		for _, service := range services {
+			ss.WriteString(fmt.Sprintf("%v %v %v %v\n", service.ServiceName, service.Host, service.Port, service.Meta))
 		}
-		t.Logf("finish ...\n")
+		ss.WriteString(fmt.Sprintf(">>>>>>> %v =====\n", id))
+		t.Log(ss.String())
+	}
+
+	getter, err := NewGetter(ctx, nil, redisClient, "", 5*time.Second, 2*time.Second)
+	assert.Nil(t, err)
+	err = getter.Start(func(services []*discovery.ServiceInfo) {
+		fnSerivicesDump("all", services)
 	})
 	assert.Nil(t, err)
-	err = getter.Start()
+
+	getter, err = NewGetter(ctx, nil, redisClient, "", 5*time.Second, 2*time.Second)
+	assert.Nil(t, err)
+	err = getter.Start(func(services []*discovery.ServiceInfo) {
+		fnSerivicesDump("grpc", services)
+	}, discovery.TypeOption("grpc"))
+	assert.Nil(t, err)
+
+	getter, err = NewGetter(ctx, nil, redisClient, "", 5*time.Second, 2*time.Second)
+	assert.Nil(t, err)
+	err = getter.Start(func(services []*discovery.ServiceInfo) {
+		fnSerivicesDump("server1", services)
+	}, discovery.NameOption("server1"))
+	assert.Nil(t, err)
+
+	getter, err = NewGetter(ctx, nil, redisClient, "", 5*time.Second, 2*time.Second)
+	assert.Nil(t, err)
+	err = getter.Start(func(services []*discovery.ServiceInfo) {
+		fnSerivicesDump("原始hahahoho", services)
+	}, discovery.RawKeyOption("原始hahahoho"))
 	assert.Nil(t, err)
 
 	setter.Wait()

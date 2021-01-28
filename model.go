@@ -1,16 +1,10 @@
 package librediscovery
 
 import (
-	"github.com/jiuzhou-zhao/go-fundamental/clienttoolset"
+	"github.com/jiuzhou-zhao/go-fundamental/discovery"
 )
 
-type ServiceInfo4Discovery struct {
-	Name             string
-	Path             string
-	GRpcClientConfig *clienttoolset.GRpcClientConfig
-}
-
 type redisInfo4DiscoveryWithTouchTm struct {
-	*ServiceInfo4Discovery
+	*discovery.ServiceInfo
 	TouchTimestamp int64
 }

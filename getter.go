@@ -25,13 +25,14 @@ type getterServerImpl struct {
 	key            string
 	expireDuration time.Duration
 	checkDuration  time.Duration
+	opts           discovery.Options
 	ob             discovery.Observer
 
-	cachedSs map[string][]*discovery.ServiceInfo
+	cachedSs []*discovery.ServiceInfo
 }
 
 func NewGetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Client, key string,
-	expireDuration time.Duration, checkDuration time.Duration, ob discovery.Observer) (interfaces.Server, error) {
+	expireDuration time.Duration, checkDuration time.Duration) (discovery.Getter, error) {
 	if redisCli == nil {
 		return nil, errors.New("no redis")
 	}
@@ -44,17 +45,13 @@ func NewGetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Cl
 	if checkDuration >= expireDuration {
 		return nil, errors.New("invalid check/expire duration")
 	}
-	if ob == nil {
-		return nil, errors.New("no ob")
-	}
 	return &getterServerImpl{
 		CycleServiceWrapper: service_wrapper.NewCycleServiceWrapper(ctx, logger),
 		redisCli:            redisCli,
 		key:                 discoveryKeyPre + ":" + key,
 		expireDuration:      expireDuration,
 		checkDuration:       checkDuration,
-		cachedSs:            make(map[string][]*discovery.ServiceInfo),
-		ob:                  ob,
+		cachedSs:            make([]*discovery.ServiceInfo, 0),
 	}, nil
 }
 
@@ -62,10 +59,6 @@ func (getter *getterServerImpl) unmarshalAndCheckRedisInfo(d []byte) (info *redi
 	var i redisInfo4DiscoveryWithTouchTm
 	err = json.Unmarshal(d, &i)
 	if err != nil {
-		return
-	}
-	if i.Name == "" || i.Path == "" || i.GRpcClientConfig == nil {
-		err = errors.New("invalid record")
 		return
 	}
 	if i.TouchTimestamp > 0 {
@@ -80,14 +73,14 @@ func (getter *getterServerImpl) unmarshalAndCheckRedisInfo(d []byte) (info *redi
 }
 
 func (getter *getterServerImpl) doJob(ctx context.Context, logger interfaces.Logger) {
-	latestSs := make(map[string][]*discovery.ServiceInfo)
+	latestSs := make([]*discovery.ServiceInfo, 0)
 
 	var cursor uint64
 	var keys []string
 	var err error
 	for {
 		utils.DefRedisTimeoutOpEx(ctx, func(ctx context.Context) {
-			keys, cursor, err = getter.redisCli.HScan(ctx, getter.key, cursor, "*", 10).Result()
+			keys, cursor, err = getter.redisCli.HScan(ctx, getter.key, cursor, getter.opts.String(), 10).Result()
 		})
 		if err != nil {
 			logger.Recordf(ctx, interfaces.LogLevelError, "redis failed: %v", err)
@@ -106,13 +99,7 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger interfaces.Log
 				})
 				continue
 			}
-			if _, ok := latestSs[info.Path]; !ok {
-				latestSs[info.Path] = make([]*discovery.ServiceInfo, 0, 1)
-			}
-			latestSs[info.Path] = append(latestSs[info.Path], &discovery.ServiceInfo{
-				Name:          info.Name,
-				GRpcAddresses: info.GRpcClientConfig,
-			})
+			latestSs = append(latestSs, info.ServiceInfo)
 		}
 
 		if cursor <= 0 {
@@ -134,7 +121,12 @@ func (getter *getterServerImpl) DoJob(ctx context.Context, logger interfaces.Log
 	return getter.checkDuration, nil
 }
 
-func (getter *getterServerImpl) Start() error {
+func (getter *getterServerImpl) Start(ob discovery.Observer, opt ...discovery.Option) error {
+	getter.opts = defaultServerOptions
+	for _, o := range opt {
+		o.Apply(&getter.opts)
+	}
+	getter.ob = ob
 	return getter.CycleServiceWrapper.Start(getter)
 }
 
@@ -144,4 +136,9 @@ func (getter *getterServerImpl) Stop() {
 
 func (getter *getterServerImpl) Wait() {
 	getter.CycleServiceWrapper.Wait()
+}
+
+var defaultServerOptions = discovery.Options{
+	ServiceType: "*",
+	ServiceName: "*",
 }
