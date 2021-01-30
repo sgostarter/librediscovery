@@ -9,6 +9,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/jiuzhou-zhao/go-fundamental/discovery"
 	"github.com/jiuzhou-zhao/go-fundamental/interfaces"
+	"github.com/jiuzhou-zhao/go-fundamental/loge"
 	"github.com/jiuzhou-zhao/go-fundamental/serviceutils/service_wrapper"
 	"github.com/jiuzhou-zhao/go-fundamental/utils"
 )
@@ -16,6 +17,8 @@ import (
 type setterServerImpl struct {
 	*service_wrapper.CycleServiceWrapper
 
+	ctx            context.Context
+	logger         *loge.Logger
 	redisCli       *redis.Client
 	poolKey        string
 	updateDuration time.Duration
@@ -35,6 +38,8 @@ func NewSetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Cl
 
 	return &setterServerImpl{
 		CycleServiceWrapper: service_wrapper.NewCycleServiceWrapper(ctx, logger),
+		ctx:                 ctx,
+		logger:              loge.NewLogger(logger),
 		redisCli:            redisCli,
 		poolKey:             discoveryKeyPre + ":" + poolKey,
 		updateDuration:      updateDuration,
@@ -58,6 +63,10 @@ func (setter *setterServerImpl) DoJob(ctx context.Context, logger interfaces.Log
 }
 
 func (setter *setterServerImpl) Start(services []*discovery.ServiceInfo) error {
+	if len(setter.services) > 0 {
+		setter.logger.Fatal(setter.ctx, "try overflow the services settings")
+		return nil
+	}
 	serverInfos := make([]*redisInfo4DiscoveryWithTouchTm, 0, len(services))
 	for _, service := range services {
 		serverInfos = append(serverInfos, &redisInfo4DiscoveryWithTouchTm{

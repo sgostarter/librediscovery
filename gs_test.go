@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetterSetter(t *testing.T) {
-	options, err := redis.ParseURL("redis://:redis_default_pass1@dev.env:8900/3")
+	options, err := redis.ParseURL("redis://:redis_default_pass1@dev.env:8900/2")
 	assert.Nil(t, err)
 	redisClient := redis.NewClient(options)
 	defer redisClient.Close()
@@ -27,7 +27,7 @@ func TestGetterSetter(t *testing.T) {
 		{
 			Host:        "127.0.0.1",
 			Port:        1000,
-			ServiceName: discovery.BuildServerName("grpc", "server1", "1"),
+			ServiceName: discovery.BuildDiscoveryServerName("grpc", "server1", "1"),
 			Meta: map[string]string{
 				"a": "b",
 			},
@@ -35,7 +35,7 @@ func TestGetterSetter(t *testing.T) {
 		{
 			Host:        "127.0.0.1",
 			Port:        1001,
-			ServiceName: discovery.BuildServerName("grpc", "server1", "2"),
+			ServiceName: discovery.BuildDiscoveryServerName("grpc", "server1", "2"),
 			Meta: map[string]string{
 				"d": "c",
 			},
@@ -43,7 +43,7 @@ func TestGetterSetter(t *testing.T) {
 		{
 			Host:        "127.0.0.1",
 			Port:        1002,
-			ServiceName: discovery.BuildServerName("http", "server1", "2"),
+			ServiceName: discovery.BuildDiscoveryServerName("http", "server1", "2"),
 			Meta: map[string]string{
 				"d": "c",
 			},
@@ -51,7 +51,7 @@ func TestGetterSetter(t *testing.T) {
 		{
 			Host:        "127.0.0.1",
 			Port:        1002,
-			ServiceName: discovery.BuildServerName("http", "server2", "2"),
+			ServiceName: discovery.BuildDiscoveryServerName("http", "server2", "2"),
 			Meta: map[string]string{
 				"d": "c",
 			},
