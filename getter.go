@@ -11,6 +11,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/jiuzhou-zhao/go-fundamental/discovery"
 	"github.com/jiuzhou-zhao/go-fundamental/interfaces"
+	"github.com/jiuzhou-zhao/go-fundamental/loge"
 	"github.com/jiuzhou-zhao/go-fundamental/serviceutils/service_wrapper"
 	"github.com/jiuzhou-zhao/go-fundamental/utils"
 )
@@ -75,6 +76,8 @@ func (getter *getterServerImpl) unmarshalAndCheckRedisInfo(d []byte) (info *redi
 func (getter *getterServerImpl) doJob(ctx context.Context, logger interfaces.Logger) {
 	latestSs := make([]*discovery.ServiceInfo, 0)
 
+	eLog := loge.NewLogger(logger)
+
 	var cursor uint64
 	var keys []string
 	var err error
@@ -83,18 +86,18 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger interfaces.Log
 			keys, cursor, err = getter.redisCli.HScan(ctx, getter.key, cursor, getter.opts.String(), 10).Result()
 		})
 		if err != nil {
-			logger.Recordf(ctx, interfaces.LogLevelError, "redis failed: %v", err)
+			eLog.Errorf(ctx, "redis failed: %v", err)
 			return
 		}
 
 		for idx := 0; idx < len(keys); idx += 2 {
 			info, err := getter.unmarshalAndCheckRedisInfo([]byte(keys[idx+1]))
 			if err != nil {
-				logger.Recordf(ctx, interfaces.LogLevelError, "parse discovery item failed: %v, %v", err, keys[idx+1])
+				eLog.Errorf(ctx, "parse discovery item failed: %v, %v", err, keys[idx+1])
 				utils.DefRedisTimeoutOp(func(ctx context.Context) {
 					err = getter.redisCli.HDel(ctx, getter.key, keys[idx]).Err()
 					if err != nil {
-						logger.Recordf(ctx, interfaces.LogLevelError, "redis failed: %v", err)
+						eLog.Errorf(ctx, "redis failed: %v", err)
 					}
 				})
 				continue
@@ -108,7 +111,7 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger interfaces.Log
 	}
 
 	if reflect.DeepEqual(latestSs, getter.cachedSs) {
-		logger.Recordf(ctx, interfaces.LogLevelDebug, "same server list")
+		loge.Debug(ctx, "same server list")
 		return
 	}
 

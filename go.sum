@@ -88,6 +88,8 @@ github.com/jackc/fake v0.0.0-20150926172116-812a484cc733/go.mod h1:WrMFNQdiFJ80s
 github.com/jackc/pgx v3.6.0+incompatible/go.mod h1:0ZGrqGqkRlliWnWB4zKnWtjbSWbGkVEFm4TeybAXq+I=
 github.com/jiuzhou-zhao/go-fundamental v0.0.4-0.20210130040732-67f5dc67c0b5 h1:R1xtH2F8PL8HmoGmUHXjJz2hrZ6861tKpDCWsvjWrpI=
 github.com/jiuzhou-zhao/go-fundamental v0.0.4-0.20210130040732-67f5dc67c0b5/go.mod h1:z8eW73WDtOPMrhSVMvEIBnrHTYqJ28jFngmWkq/6Vqc=
+github.com/jiuzhou-zhao/go-fundamental v0.0.5-0.20210130135344-4c66390ce751 h1:8fl2utOIBBZr1F/ObIFtSslLk+X/Tls5/90Y/pEIgvw=
+github.com/jiuzhou-zhao/go-fundamental v0.0.5-0.20210130135344-4c66390ce751/go.mod h1:z8eW73WDtOPMrhSVMvEIBnrHTYqJ28jFngmWkq/6Vqc=
 github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1:6v2b51hI/fHJwM22ozAgKL4VKDeJcHhJFhtBdhmNjmU=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=

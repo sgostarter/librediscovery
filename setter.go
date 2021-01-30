@@ -48,13 +48,14 @@ func NewSetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Cl
 }
 
 func (setter *setterServerImpl) DoJob(ctx context.Context, logger interfaces.Logger) (time.Duration, error) {
+	eLog := loge.NewLogger(logger)
 	for idx := range setter.services {
 		setter.services[idx].TouchTimestamp = time.Now().Unix()
 		bs, _ := json.Marshal(setter.services[idx])
 		utils.DefRedisTimeoutOpEx(ctx, func(ctx context.Context) {
 			err := setter.redisCli.HSet(ctx, setter.poolKey, setter.services[idx].ServiceName, bs).Err()
 			if err != nil {
-				logger.Recordf(ctx, interfaces.LogLevelError, "publish service %v failed: %v",
+				eLog.Errorf(ctx, "publish service %v failed: %v",
 					setter.services[idx].ServiceName, err)
 			}
 		})
