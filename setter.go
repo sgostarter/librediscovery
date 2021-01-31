@@ -26,6 +26,14 @@ type setterServerImpl struct {
 	services []*redisInfo4DiscoveryWithTouchTm
 }
 
+func NewDefaultSetter(ctx context.Context, redisCli *redis.Client) (discovery.Setter, error) {
+	eLog := loge.GetGlobalLogger()
+	if eLog == nil || eLog.GetLogger() == nil {
+		return nil, errors.New("no logger")
+	}
+	return NewSetter(ctx, eLog.GetLogger(), redisCli, "", time.Minute)
+}
+
 func NewSetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Client, poolKey string,
 	updateDuration time.Duration) (discovery.Setter, error) {
 	if redisCli == nil {
@@ -41,7 +49,7 @@ func NewSetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Cl
 		ctx:                 ctx,
 		logger:              loge.NewLogger(logger),
 		redisCli:            redisCli,
-		poolKey:             discoveryKeyPre + ":" + poolKey,
+		poolKey:             redisKey4DiscoveryPool(poolKey),
 		updateDuration:      updateDuration,
 		services:            nil,
 	}, nil

@@ -16,10 +16,6 @@ import (
 	"github.com/jiuzhou-zhao/go-fundamental/utils"
 )
 
-const (
-	discoveryKeyPre = "rediscovery"
-)
-
 type getterServerImpl struct {
 	*service_wrapper.CycleServiceWrapper
 	redisCli       *redis.Client
@@ -32,7 +28,15 @@ type getterServerImpl struct {
 	cachedSs []*discovery.ServiceInfo
 }
 
-func NewGetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Client, key string,
+func NewDefaultGetter(ctx context.Context, redisCli *redis.Client) (discovery.Getter, error) {
+	eLog := loge.GetGlobalLogger()
+	if eLog == nil || eLog.GetLogger() == nil {
+		return nil, errors.New("no logger")
+	}
+	return NewGetter(ctx, eLog.GetLogger(), redisCli, "", 4*time.Minute, 1*time.Minute)
+}
+
+func NewGetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Client, poolKey string,
 	expireDuration time.Duration, checkDuration time.Duration) (discovery.Getter, error) {
 	if redisCli == nil {
 		return nil, errors.New("no redis")
@@ -49,7 +53,7 @@ func NewGetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Cl
 	return &getterServerImpl{
 		CycleServiceWrapper: service_wrapper.NewCycleServiceWrapper(ctx, logger),
 		redisCli:            redisCli,
-		key:                 discoveryKeyPre + ":" + key,
+		key:                 redisKey4DiscoveryPool(poolKey),
 		expireDuration:      expireDuration,
 		checkDuration:       checkDuration,
 		cachedSs:            make([]*discovery.ServiceInfo, 0),
