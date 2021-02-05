@@ -97,7 +97,7 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger interfaces.Log
 		for idx := 0; idx < len(keys); idx += 2 {
 			info, err := getter.unmarshalAndCheckRedisInfo([]byte(keys[idx+1]))
 			if err != nil {
-				eLog.Errorf(ctx, "parse discovery item failed: %v, %v", err, keys[idx+1])
+				eLog.Warnf(ctx, "parse discovery item failed: %v, %v", err, keys[idx+1])
 				utils.DefRedisTimeoutOp(func(ctx context.Context) {
 					err = getter.redisCli.HDel(ctx, getter.key, keys[idx]).Err()
 					if err != nil {
