@@ -7,18 +7,17 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/jiuzhou-zhao/go-fundamental/discovery"
-	"github.com/jiuzhou-zhao/go-fundamental/interfaces"
-	"github.com/jiuzhou-zhao/go-fundamental/loge"
-	"github.com/jiuzhou-zhao/go-fundamental/serviceutils/service_wrapper"
-	"github.com/jiuzhou-zhao/go-fundamental/utils"
+	"github.com/sgostarter/i/l"
+	"github.com/sgostarter/libeasygo/helper"
+	"github.com/sgostarter/libeasygo/servicewrapper"
+	"github.com/sgostarter/librediscovery/discovery"
 )
 
 type setterServerImpl struct {
-	*service_wrapper.CycleServiceWrapper
+	*servicewrapper.CycleServiceWrapper
 
 	ctx            context.Context
-	logger         *loge.Logger
+	logger         l.Wrapper
 	redisCli       *redis.Client
 	poolKey        string
 	updateDuration time.Duration
@@ -27,15 +26,15 @@ type setterServerImpl struct {
 }
 
 func NewDefaultSetter(ctx context.Context, redisCli *redis.Client) (discovery.Setter, error) {
-	eLog := loge.GetGlobalLogger()
-	if eLog == nil || eLog.GetLogger() == nil {
-		return nil, errors.New("no logger")
-	}
-	return NewSetter(ctx, eLog.GetLogger(), redisCli, "", time.Minute)
+	return NewSetter(ctx, l.NewNopLoggerWrapper(), redisCli, "", time.Minute)
 }
 
-func NewSetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Client, poolKey string,
+func NewSetter(ctx context.Context, logger l.Wrapper, redisCli *redis.Client, poolKey string,
 	updateDuration time.Duration) (discovery.Setter, error) {
+	if logger == nil {
+		logger = l.NewNopLoggerWrapper()
+	}
+
 	if redisCli == nil {
 		return nil, errors.New("no redis")
 	}
@@ -45,9 +44,9 @@ func NewSetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Cl
 	}
 
 	return &setterServerImpl{
-		CycleServiceWrapper: service_wrapper.NewCycleServiceWrapper(ctx, logger),
+		CycleServiceWrapper: servicewrapper.NewCycleServiceWrapper(ctx, logger),
 		ctx:                 ctx,
-		logger:              loge.NewLogger(logger),
+		logger:              logger.WithFields(l.StringField(l.ClsKey, "setter")),
 		redisCli:            redisCli,
 		poolKey:             redisKey4DiscoveryPool(poolKey),
 		updateDuration:      updateDuration,
@@ -55,15 +54,14 @@ func NewSetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Cl
 	}, nil
 }
 
-func (setter *setterServerImpl) DoJob(ctx context.Context, logger interfaces.Logger) (time.Duration, error) {
-	eLog := loge.NewLogger(logger)
+func (setter *setterServerImpl) DoJob(ctx context.Context, logger l.Wrapper) (time.Duration, error) {
 	for idx := range setter.services {
 		setter.services[idx].TouchTimestamp = time.Now().Unix()
 		bs, _ := json.Marshal(setter.services[idx])
-		utils.DefRedisTimeoutOpEx(ctx, func(ctx context.Context) {
+		helper.DoWithTimeout(ctx, time.Second, func(ctx context.Context) {
 			err := setter.redisCli.HSet(ctx, setter.poolKey, setter.services[idx].ServiceName, bs).Err()
 			if err != nil {
-				eLog.Errorf(ctx, "publish service %v failed: %v",
+				logger.Errorf("publish service %v failed: %v",
 					setter.services[idx].ServiceName, err)
 			}
 		})

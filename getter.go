@@ -9,15 +9,14 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/jiuzhou-zhao/go-fundamental/discovery"
-	"github.com/jiuzhou-zhao/go-fundamental/interfaces"
-	"github.com/jiuzhou-zhao/go-fundamental/loge"
-	"github.com/jiuzhou-zhao/go-fundamental/serviceutils/service_wrapper"
-	"github.com/jiuzhou-zhao/go-fundamental/utils"
+	"github.com/sgostarter/i/l"
+	"github.com/sgostarter/libeasygo/helper"
+	"github.com/sgostarter/libeasygo/servicewrapper"
+	"github.com/sgostarter/librediscovery/discovery"
 )
 
 type getterServerImpl struct {
-	*service_wrapper.CycleServiceWrapper
+	*servicewrapper.CycleServiceWrapper
 	redisCli       *redis.Client
 	key            string
 	expireDuration time.Duration
@@ -29,14 +28,10 @@ type getterServerImpl struct {
 }
 
 func NewDefaultGetter(ctx context.Context, redisCli *redis.Client) (discovery.Getter, error) {
-	eLog := loge.GetGlobalLogger()
-	if eLog == nil || eLog.GetLogger() == nil {
-		return nil, errors.New("no logger")
-	}
-	return NewGetter(ctx, eLog.GetLogger(), redisCli, "", 4*time.Minute, 1*time.Minute)
+	return NewGetter(ctx, l.NewNopLoggerWrapper(), redisCli, "", 4*time.Minute, 1*time.Minute)
 }
 
-func NewGetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Client, poolKey string,
+func NewGetter(ctx context.Context, logger l.Wrapper, redisCli *redis.Client, poolKey string,
 	expireDuration time.Duration, checkDuration time.Duration) (discovery.Getter, error) {
 	if redisCli == nil {
 		return nil, errors.New("no redis")
@@ -51,7 +46,7 @@ func NewGetter(ctx context.Context, logger interfaces.Logger, redisCli *redis.Cl
 		return nil, errors.New("invalid check/expire duration")
 	}
 	return &getterServerImpl{
-		CycleServiceWrapper: service_wrapper.NewCycleServiceWrapper(ctx, logger),
+		CycleServiceWrapper: servicewrapper.NewCycleServiceWrapper(ctx, logger),
 		redisCli:            redisCli,
 		key:                 redisKey4DiscoveryPool(poolKey),
 		expireDuration:      expireDuration,
@@ -77,33 +72,33 @@ func (getter *getterServerImpl) unmarshalAndCheckRedisInfo(d []byte) (info *redi
 	return
 }
 
-func (getter *getterServerImpl) doJob(ctx context.Context, logger interfaces.Logger) {
+func (getter *getterServerImpl) doJob(ctx context.Context, logger l.Wrapper) {
 	latestSs := make([]*discovery.ServiceInfo, 0)
-
-	eLog := loge.NewLogger(logger)
 
 	var cursor uint64
 	var keys []string
 	var err error
 	for {
-		utils.DefRedisTimeoutOpEx(ctx, func(ctx context.Context) {
+		helper.DoWithTimeout(ctx, time.Second, func(ctx context.Context) {
 			keys, cursor, err = getter.redisCli.HScan(ctx, getter.key, cursor, getter.opts.String(), 10).Result()
 		})
+
 		if err != nil {
-			eLog.Errorf(ctx, "redis failed: %v", err)
+			logger.Errorf("redis failed: %v", err)
 			return
 		}
 
 		for idx := 0; idx < len(keys); idx += 2 {
 			info, err := getter.unmarshalAndCheckRedisInfo([]byte(keys[idx+1]))
 			if err != nil {
-				eLog.Warnf(ctx, "parse discovery item failed: %v, %v", err, keys[idx+1])
-				utils.DefRedisTimeoutOp(func(ctx context.Context) {
+				logger.Warnf("parse discovery item failed: %v, %v", err, keys[idx+1])
+				helper.DoWithTimeout(ctx, time.Second, func(ctx context.Context) {
 					err = getter.redisCli.HDel(ctx, getter.key, keys[idx]).Err()
 					if err != nil {
-						eLog.Errorf(ctx, "redis failed: %v", err)
+						logger.Errorf("redis failed: %v", err)
 					}
 				})
+
 				continue
 			}
 			latestSs = append(latestSs, info.ServiceInfo)
@@ -115,7 +110,7 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger interfaces.Log
 	}
 
 	if reflect.DeepEqual(latestSs, getter.cachedSs) {
-		loge.Debug(ctx, "same server list")
+		logger.Debug("same server list")
 		return
 	}
 
@@ -123,7 +118,7 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger interfaces.Log
 	getter.ob(getter.cachedSs)
 }
 
-func (getter *getterServerImpl) DoJob(ctx context.Context, logger interfaces.Logger) (time.Duration, error) {
+func (getter *getterServerImpl) DoJob(ctx context.Context, logger l.Wrapper) (time.Duration, error) {
 	getter.doJob(ctx, logger)
 	return getter.checkDuration, nil
 }

@@ -1,8 +1,6 @@
 package librediscovery
 
-import (
-	"github.com/jiuzhou-zhao/go-fundamental/discovery"
-)
+import "github.com/sgostarter/librediscovery/discovery"
 
 const (
 	discoveryKeyPre = "rediscovery"

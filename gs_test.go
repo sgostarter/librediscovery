@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/jiuzhou-zhao/go-fundamental/discovery"
+	"github.com/sgostarter/librediscovery/discovery"
 	"github.com/stretchr/testify/assert"
 )
 
