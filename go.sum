@@ -71,11 +71,11 @@ github.com/onsi/gomega v1.18.1/go.mod h1:0q+aL8jAiMXy9hbwj2mr5GziHiwhAIQpFmmtT5h
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstvQsPGkxUsCd2KWxErBblirPizecHcpD3ffK+s=
-github.com/sgostarter/i v0.1.8 h1:e1ZH3YrtmnWCR3FtBrNhdnFnVLk1Ci0zqANh00dzJTY=
-github.com/sgostarter/i v0.1.8/go.mod h1:buUUS9rtMjKmQhYNKxiM+brhFX7jLzZKv6AuZlHCgGk=
+github.com/sgostarter/i v0.1.11 h1:Hj2YbMgV9RPxJovphTnB6w3IhE6vAij5Fao0iFcEg6I=
+github.com/sgostarter/i v0.1.11/go.mod h1:buUUS9rtMjKmQhYNKxiM+brhFX7jLzZKv6AuZlHCgGk=
 github.com/sgostarter/libconfig v0.0.0-20220501124634-dd2bd2401e61/go.mod h1:5KLny8g++hHgCBbsMYRpxSUsJIi77h/3/CftIiWJox8=
-github.com/sgostarter/libeasygo v0.1.20 h1:RNoypDtt4hNeZk8Elp3a5iLCvhIuPL364NqwDKZ3h78=
-github.com/sgostarter/libeasygo v0.1.20/go.mod h1:qkltq+Kr9LBqxzrrPt1u2KK9sh5Kd7iRU3CQuBBWr9k=
+github.com/sgostarter/libeasygo v0.1.21 h1:aEuafUwsqGhe0ErT7jOar7WU/pNbzfia78Y0suUlKDQ=
+github.com/sgostarter/libeasygo v0.1.21/go.mod h1:dv+aBE+0vGeR3eb9UkZEI89soGYmaLZNWHHQCstxZpo=
 github.com/spf13/cast v1.4.1 h1:s0hze+J0196ZfEMTs80N7UlFt0BDuQ7Q+JDnHiMWKdA=
 github.com/spf13/cast v1.4.1/go.mod h1:Qx5cxh0v+4UWYiBimWS+eyWzqEqokIECu5etghLkUJE=
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
