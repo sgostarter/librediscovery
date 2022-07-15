@@ -1,6 +1,10 @@
 package librediscovery
 
-import "github.com/sgostarter/librediscovery/discovery"
+import (
+	"time"
+
+	"github.com/sgostarter/librediscovery/discovery"
+)
 
 const (
 	discoveryKeyPre = "rediscovery"
@@ -9,6 +13,7 @@ const (
 type redisInfo4DiscoveryWithTouchTm struct {
 	*discovery.ServiceInfo
 	TouchTimestamp int64
+	TouchTime      time.Time
 }
 
 func redisKey4DiscoveryPool(poolKey string) string {

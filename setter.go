@@ -56,7 +56,8 @@ func NewSetter(ctx context.Context, logger l.Wrapper, redisCli *redis.Client, po
 
 func (setter *setterServerImpl) DoJob(ctx context.Context, logger l.Wrapper) (time.Duration, error) {
 	for idx := range setter.services {
-		setter.services[idx].TouchTimestamp = time.Now().Unix()
+		setter.services[idx].TouchTime = time.Now()
+		setter.services[idx].TouchTimestamp = setter.services[idx].TouchTime.Unix()
 		bs, _ := json.Marshal(setter.services[idx])
 		helper.DoWithTimeout(ctx, time.Second, func(ctx context.Context) {
 			err := setter.redisCli.HSet(ctx, setter.poolKey, setter.services[idx].ServiceName, bs).Err()
