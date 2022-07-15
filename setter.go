@@ -54,6 +54,18 @@ func NewSetter(ctx context.Context, logger l.Wrapper, redisCli *redis.Client, po
 	}, nil
 }
 
+func (setter *setterServerImpl) OnStart(logger l.Wrapper) {
+
+}
+
+func (setter *setterServerImpl) OnFinish(logger l.Wrapper) {
+	for idx := range setter.services {
+		helper.DoWithTimeout(context.Background(), time.Second, func(ctx context.Context) {
+			_ = setter.redisCli.HDel(ctx, setter.poolKey, setter.services[idx].ServiceName).Err()
+		})
+	}
+}
+
 func (setter *setterServerImpl) DoJob(ctx context.Context, logger l.Wrapper) (time.Duration, error) {
 	for idx := range setter.services {
 		setter.services[idx].TouchTime = time.Now()

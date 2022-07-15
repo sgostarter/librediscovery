@@ -131,6 +131,14 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger l.Wrapper) {
 	getter.ob(getter.cachedSs)
 }
 
+func (getter *getterServerImpl) OnStart(_ l.Wrapper) {
+
+}
+
+func (getter *getterServerImpl) OnFinish(_ l.Wrapper) {
+
+}
+
 func (getter *getterServerImpl) DoJob(ctx context.Context, logger l.Wrapper) (time.Duration, error) {
 	getter.doJob(ctx, logger)
 
