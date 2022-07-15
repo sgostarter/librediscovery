@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	TypeBuildInGRPC    = "__grpc"
-	TypeBuildInGRPCWeb = "__grpc_web"
-	TypeBuildInHTTP    = "__http"
+	TypeBuildInGRPC    = "@grpc"
+	TypeBuildInGRPCWeb = "@grpc_web"
+	TypeBuildInHTTP    = "@http"
 )
 
 var _registeredTypes sync.Map
