@@ -20,5 +20,6 @@ func redisKey4DiscoveryPool(poolKey string) string {
 	if poolKey == "" {
 		return discoveryKeyPre
 	}
+
 	return discoveryKeyPre + ":" + poolKey
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// nolint
 func TestGetterSetter(t *testing.T) {
 	options, err := redis.ParseURL("redis://:redis_default_pass1@dev.env:8900/2")
 	assert.Nil(t, err)

@@ -36,15 +36,19 @@ func NewGetter(ctx context.Context, logger l.Wrapper, redisCli *redis.Client, po
 	if redisCli == nil {
 		return nil, errors.New("no redis")
 	}
+
 	if expireDuration <= 0 {
 		return nil, errors.New("no expire duration")
 	}
+
 	if checkDuration <= 0 {
 		return nil, errors.New("no check duration")
 	}
+
 	if checkDuration >= expireDuration {
 		return nil, errors.New("invalid check/expire duration")
 	}
+
 	return &getterServerImpl{
 		CycleServiceWrapper: servicewrapper.NewCycleServiceWrapper(ctx, logger),
 		redisCli:            redisCli,
@@ -58,17 +62,22 @@ func NewGetter(ctx context.Context, logger l.Wrapper, redisCli *redis.Client, po
 func (getter *getterServerImpl) unmarshalAndCheckRedisInfo(d []byte) (info *redisInfo4DiscoveryWithTouchTm, err error) {
 	var i redisInfo4DiscoveryWithTouchTm
 	err = json.Unmarshal(d, &i)
+
 	if err != nil {
 		return
 	}
+
 	if i.TouchTimestamp > 0 {
 		elapsedDuration := time.Since(time.Unix(i.TouchTimestamp, 0))
 		if elapsedDuration >= getter.expireDuration {
 			err = fmt.Errorf("exipre: %v", elapsedDuration-getter.expireDuration)
+
 			return
 		}
 	}
+
 	info = &i
+
 	return
 }
 
@@ -76,8 +85,11 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger l.Wrapper) {
 	latestSs := make([]*discovery.ServiceInfo, 0)
 
 	var cursor uint64
+
 	var keys []string
+
 	var err error
+
 	for {
 		helper.DoWithTimeout(ctx, time.Second, func(ctx context.Context) {
 			keys, cursor, err = getter.redisCli.HScan(ctx, getter.key, cursor, getter.opts.String(), 10).Result()
@@ -85,6 +97,7 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger l.Wrapper) {
 
 		if err != nil {
 			logger.Errorf("redis failed: %v", err)
+
 			return
 		}
 
@@ -101,6 +114,7 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger l.Wrapper) {
 
 				continue
 			}
+
 			latestSs = append(latestSs, info.ServiceInfo)
 		}
 
@@ -110,7 +124,6 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger l.Wrapper) {
 	}
 
 	if reflect.DeepEqual(latestSs, getter.cachedSs) {
-		logger.Debug("same server list")
 		return
 	}
 
@@ -120,6 +133,7 @@ func (getter *getterServerImpl) doJob(ctx context.Context, logger l.Wrapper) {
 
 func (getter *getterServerImpl) DoJob(ctx context.Context, logger l.Wrapper) (time.Duration, error) {
 	getter.doJob(ctx, logger)
+
 	return getter.checkDuration, nil
 }
 
@@ -128,7 +142,9 @@ func (getter *getterServerImpl) Start(ob discovery.Observer, opt ...discovery.Op
 	for _, o := range opt {
 		o.Apply(&getter.opts)
 	}
+
 	getter.ob = ob
+
 	return getter.CycleServiceWrapper.Start(getter)
 }
 

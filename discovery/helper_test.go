@@ -2,6 +2,7 @@ package discovery
 
 import "testing"
 
+// nolint
 func TestParseDiscoveryServerName(t *testing.T) {
 	type args struct {
 		n string

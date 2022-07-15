@@ -10,9 +10,11 @@ func (options Options) String() string {
 	if options.RawKey != "" {
 		return options.RawKey
 	}
+
 	if options.ServiceType == "*" && options.ServiceName == "*" {
 		return "*"
 	}
+
 	return options.ServiceType + ":" + options.ServiceName + ":*"
 }
 

@@ -1,19 +1,36 @@
 package discovery
 
-import "strings"
-
-const (
-	TypeGRpc = "grpc"
-	TypeHttp = "http"
+import (
+	"strings"
+	"sync"
+	"time"
 )
 
+const (
+	TypeBuildInGRPC    = "__grpc"
+	TypeBuildInGRPCWeb = "__grpc_web"
+	TypeBuildInHTTP    = "__http"
+)
+
+var _registeredTypes sync.Map
+
+func RegisterType(t string) {
+	_registeredTypes.Store(strings.ToLower(t), time.Now())
+}
+
 func IsValidType(t string) bool {
-	switch strings.ToLower(t) {
-	case TypeGRpc:
-	case TypeHttp:
+	t = strings.ToLower(t)
+
+	switch t {
+	case TypeBuildInGRPC:
+	case TypeBuildInGRPCWeb:
+	case TypeBuildInHTTP:
 	default:
-		return false
+		if _, ok := _registeredTypes.Load(t); !ok {
+			return false
+		}
 	}
+
 	return true
 }
 

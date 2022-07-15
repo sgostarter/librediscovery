@@ -59,6 +59,7 @@ func (setter *setterServerImpl) DoJob(ctx context.Context, logger l.Wrapper) (ti
 		setter.services[idx].TouchTime = time.Now()
 		setter.services[idx].TouchTimestamp = setter.services[idx].TouchTime.Unix()
 		bs, _ := json.Marshal(setter.services[idx])
+
 		helper.DoWithTimeout(ctx, time.Second, func(ctx context.Context) {
 			err := setter.redisCli.HSet(ctx, setter.poolKey, setter.services[idx].ServiceName, bs).Err()
 			if err != nil {
@@ -67,26 +68,34 @@ func (setter *setterServerImpl) DoJob(ctx context.Context, logger l.Wrapper) (ti
 			}
 		})
 	}
+
 	return setter.updateDuration, nil
 }
 
 func (setter *setterServerImpl) Start(services []*discovery.ServiceInfo) error {
 	if len(setter.services) > 0 {
 		setter.logger.Fatal(setter.ctx, "try overflow the services settings")
+
 		return nil
 	}
+
 	serverInfos := make([]*redisInfo4DiscoveryWithTouchTm, 0, len(services))
+
 	for _, service := range services {
 		serverInfos = append(serverInfos, &redisInfo4DiscoveryWithTouchTm{
 			ServiceInfo:    service,
 			TouchTimestamp: 0,
 		})
 	}
+
 	err := setter.CycleServiceWrapper.Start(setter)
+
 	if err != nil {
 		return err
 	}
+
 	setter.services = serverInfos
+
 	return nil
 }
 
