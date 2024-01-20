@@ -39,10 +39,10 @@ const (
 )
 
 type ServiceInfo struct {
-	Host        string
-	Port        int
-	ServiceName string // type:name:index
-	Meta        map[string]string
+	Host        string            `json:"host"`
+	Port        int               `json:"port"`
+	ServiceName string            `json:"service_name"` // type:name:index
+	Meta        map[string]string `json:"meta"`
 }
 
 type Observer func(services []*ServiceInfo)

@@ -54,11 +54,11 @@ func NewSetter(ctx context.Context, logger l.Wrapper, redisCli *redis.Client, po
 	}, nil
 }
 
-func (setter *setterServerImpl) OnStart(logger l.Wrapper) {
+func (setter *setterServerImpl) OnStart(_ l.Wrapper) {
 
 }
 
-func (setter *setterServerImpl) OnFinish(logger l.Wrapper) {
+func (setter *setterServerImpl) OnFinish(_ l.Wrapper) {
 	for idx := range setter.services {
 		helper.DoWithTimeout(context.Background(), time.Second, func(ctx context.Context) {
 			_ = setter.redisCli.HDel(ctx, setter.poolKey, setter.services[idx].ServiceName).Err()

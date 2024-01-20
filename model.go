@@ -12,8 +12,8 @@ const (
 
 type redisInfo4DiscoveryWithTouchTm struct {
 	*discovery.ServiceInfo
-	TouchTimestamp int64
-	TouchTime      time.Time
+	TouchTimestamp int64     `json:"touch_timestamp"`
+	TouchTime      time.Time `json:"touch_time"`
 }
 
 func redisKey4DiscoveryPool(poolKey string) string {
