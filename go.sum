@@ -93,8 +93,8 @@ github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/f
 github.com/sgostarter/i v0.1.16 h1:bSKlC3PdXmbx8TiUVCFicQhgMbqoMSpDa9pzw0NS+7I=
 github.com/sgostarter/i v0.1.16/go.mod h1:AQ1Z3CmrfLm09U8qn5XAuor/px/n2gJErhfLkgSsEto=
 github.com/sgostarter/libconfig v0.0.2/go.mod h1:5KLny8g++hHgCBbsMYRpxSUsJIi77h/3/CftIiWJox8=
-github.com/sgostarter/libeasygo v0.1.83 h1:Rp+ciiYbXL7ocYCJdwAJuFkJB2g3Wylteoy4OksNjn0=
-github.com/sgostarter/libeasygo v0.1.83/go.mod h1:T8Bvoges2GF1MYuez+PYFUehrqwnMbAUTc8ckWP6yYQ=
+github.com/sgostarter/libeasygo v0.1.84 h1:3uv0WDAYpm/fMpcF/Je2WgeQP5TBVNT2WcJRCBlmJ/w=
+github.com/sgostarter/libeasygo v0.1.84/go.mod h1:T8Bvoges2GF1MYuez+PYFUehrqwnMbAUTc8ckWP6yYQ=
 github.com/shirou/gopsutil/v3 v3.23.10/go.mod h1:JIE26kpucQi+innVlAUnIEOSBhBUkirr5b44yr55+WE=
 github.com/shoenig/go-m1cpu v0.1.6/go.mod h1:1JJMcUBvfNwpq05QDQVAnx3gUHr9IYF7GNg9SUEw2VQ=
 github.com/shoenig/test v0.6.4/go.mod h1:byHiCGXqrVaflBLAMq/srcZIHynQPQgeyvkvXnjqq0k=
